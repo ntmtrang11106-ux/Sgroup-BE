@@ -1,97 +1,36 @@
-import * as usersService from '../service/users.service.js';
+import * as usersService from "../service/users.service.js";
+import { asyncHandler } from "../middleware/asyncHandler.js";
 
-export const getAllUsers = async (req, res) => {
-    try {
-        const users = await usersService.getAllUsers();
-        res.status(200).json({
-            success: true,
-            message: 'Users retrieved successfully',
-            data: users
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false, 
-            message: 'Internal server error',
-            error: error.message
-        });
-    }
-}
+export const getAllUsers = asyncHandler(async (req, res) => {
+  const users = await usersService.getAllUsers();
+  res.status(200).json({ success: true, message: "Users retrieved successfully", data: users });
+});
 
+export const getUserById = asyncHandler(async (req, res) => {
+  const user = await usersService.getUserById(req.params.id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+  res.status(200).json({ success: true, message: "User retrieved successfully", data: user });
+});
 
-export const getUserById = async (req, res) => {
-    const userId = req.params.id;
+export const createUser = asyncHandler(async (req, res) => {
+  const newUser = await usersService.createUser(req.body);
+  res.status(201).json({ success: true, message: "User created successfully", data: newUser });
+});
 
-    try {
-        const user = await usersService.getUserById(userId);
-        if (!user) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-        
-        res.status(200).json({
-            success: true,
-            message: 'User retrieved successfully',
-            data: user
-        });
-    } catch (error) {
-        res.status(500).json({ 
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
-    }
-}
+export const updateUser = asyncHandler(async (req, res) => {
+  const updatedUser = await usersService.updateUser(req.params.id, req.body);
+  if (!updatedUser) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+  res.status(200).json({ success: true, message: "User updated successfully", data: updatedUser });
+});
 
-export const updateUser = async (req, res) => {
-    const userId = req.params.id;
-    const updateData = req.body;
-
-    try {
-        const updatedUser = await usersService.updateUser(userId, updateData);
-        if (!updatedUser) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'User updated successfully',
-            data: updatedUser
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
-    }
-};
-
-export const deleteUser = async (req, res) => {
-    const userId = req.params.id;
-
-    try {
-        const isDeleted = await usersService.deleteUser(userId);
-        if (!isDeleted) {
-            return res.status(404).json({
-                success: false,
-                message: 'User not found'
-            });
-        }
-
-        res.status(200).json({
-            success: true,
-            message: 'User deleted successfully'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Internal server error',
-            error: error.message
-        });
-    }
-};
+export const deleteUser = asyncHandler(async (req, res) => {
+  const isDeleted = await usersService.deleteUser(req.params.id);
+  if (!isDeleted) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+  res.status(200).json({ success: true, message: "User deleted successfully" });
+});

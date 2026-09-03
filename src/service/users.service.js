@@ -1,69 +1,62 @@
-import { readData, writeData } from "../repository/readData.js";
+import { readData, writeData } from "../repository/handleData.js";
+import { parseUserId } from "../utils/user.helper.js";
 
 export const getAllUsers = async () => {
-  try {
-    const data = await readData();
-    return data.users;
-  }
-  catch (error) {
-    console.error('Error fetching users:', error);
-    throw error;
-  }
-}
+  const data = await readData();
+  return data.users;
+};
 
 export const getUserById = async (userId) => {
-  try {
-    const data = await readData();
+  const id = parseUserId(userId);
+  const data = await readData();
+  const user = data.users.find((user) => user.id === id);
+  return user || null;
+};
 
-    const user = data.users.find(user => user.id === parseInt(userId));
-    return user || null;
-  }
-  catch (error) {
-    console.error(`Error fetching user with ID ${userId}:`, error);
-    throw error;
-  }
-}
+export const createUser = async (newUserData) => {
+  const data = await readData();
+  const nextId =
+    data.users.length > 0 ? Math.max(...data.users.map((u) => u.id)) + 1 : 1;
+
+  const newUser = {
+    id: nextId,
+    ...newUserData,
+  };
+
+  data.users.push(newUser);
+  await writeData(data);
+  return newUser;
+};
 
 export const updateUser = async (userId, updateData) => {
-  try {
-    const data = await readData();
-    const id = parseInt(userId);
-    const index = data.users.findIndex(user => user.id === id);
+  const id = parseUserId(userId);
+  const data = await readData();
+  const index = data.users.findIndex((user) => user.id === id);
 
-    if (index === -1) {
-      return null;
-    }
-
-    // Cập nhật thông tin user và giữ nguyên ID
-    data.users[index] = {
-      ...data.users[index],
-      ...updateData,
-      id: id
-    };
-
-    await writeData(data);
-    return data.users[index];
-  } catch (error) {
-    console.error(`Error updating user with ID ${userId}:`, error);
-    throw error;
+  if (index === -1) {
+    return null;
   }
+
+  data.users[index] = {
+    ...data.users[index],
+    ...updateData,
+    id: id,
+  };
+
+  await writeData(data);
+  return data.users[index];
 };
 
 export const deleteUser = async (userId) => {
-  try {
-    const data = await readData();
-    const id = parseInt(userId);
-    const index = data.users.findIndex(user => user.id === id);
+  const id = parseUserId(userId);
+  const data = await readData();
+  const index = data.users.findIndex((user) => user.id === id);
 
-    if (index === -1) {
-      return false;
-    }
-
-    data.users.splice(index, 1);
-    await writeData(data);
-    return true;
-  } catch (error) {
-    console.error(`Error deleting user with ID ${userId}:`, error);
-    throw error;
+  if (index === -1) {
+    return false;
   }
+
+  data.users.splice(index, 1);
+  await writeData(data);
+  return true;
 };
