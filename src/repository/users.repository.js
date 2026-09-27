@@ -50,3 +50,11 @@ export const deleteById = async (id) => {
   const result = await pool.query("DELETE FROM users WHERE id = $1 RETURNING id", [id]);
   return result.rowCount > 0;
 };
+//Hàm cập nhật avatar của user
+export const updateAvatar = async (userId, avatarUrl) => {
+  const result = await pool.query(
+    "UPDATE users SET avatar_url = $1 WHERE id = $2 RETURNING id, full_name, email, role, avatar_url",
+    [avatarUrl, userId]
+  );
+  return result.rows[0];
+};
